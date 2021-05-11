@@ -63,5 +63,5 @@ uuid.lib
 comdlg32.lib
 ```
 
-万事俱备只欠东风，打开libevent官方文档，在 [DNS相关文档](http://www.wangafu.net/~nickm/libevent-book/Ref9_dns.html) 找到 Nonblocking lookups with evdns_getaddrinfo 。其实文档写得很清楚，也很容易阅读。此处使用的是 evdns_getaddrinfo 进行异步解析，而为了更细粒度控制(more fine-grained control than)，这里使用的是  evdns_base_resolve_ipv4 （Low-level DNS interfaces）
+万事俱备只欠东风，打开libevent官方文档，在 [DNS相关文档](http://www.wangafu.net/~nickm/libevent-book/Ref9_dns.html) 找到 Nonblocking lookups with evdns_getaddrinfo 。其实文档写得很清楚，也很容易阅读。此处使用的是 evdns_getaddrinfo 进行异步解析，而为了更细粒度控制(more fine-grained control than)，这里使用的是  evdns_base_resolve_ipv4 ，evdns_base_resolve_ipv6（Low-level DNS interfaces）。具体是 ipv4还是ipv6可以通过正则判断，该部分判断还是交给Java吧，C++太操蛋。
 
