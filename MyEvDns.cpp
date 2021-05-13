@@ -22,9 +22,12 @@ static jclass callbackClass;
 
 static char* numberToAddr(u32 address)
 {
-    static char buf[16];
+	// 注意此处不可直接写成 static char* buf; 该方式会导致返
+	// 回到Java中的数组元素都是同一个, 即指针指向了同一个位置
+	// 故推荐 char* buf = (char*)malloc(16);
+	char* buf = (char*)malloc(16);
 	u32 a = ntohl(address);
-	evutil_snprintf(buf, sizeof(buf), "%d.%d.%d.%d",
+	sprintf(buf, "%d.%d.%d.%d",
 		(int)(u8)((a >> 24) & 0xff),
 		(int)(u8)((a >> 16) & 0xff),
 		(int)(u8)((a >> 8) & 0xff),
@@ -100,48 +103,48 @@ void callbackFunc(int errCode, int count, int ttl, char* originHost, map<int, ve
 	jvm->DetachCurrentThread();
 }
 
-static char* copyStr(char* src) {
-	char* target = new char[strlen(src)];
-	strcpy(target, src);
-	return target;
+void free2DArray(void** arr, int count) {
+	for (int i = 0; i < count; i++) {
+		free(arr[i]);
+	}
+	delete[]arr;
+	printf("free memory success\n");
 }
+
 
 DnsCallback callback = NULL;
 
 static void resolve_callback(int errCode, char type, int count, int ttl, void* addrs, void* originHost) {
 	char* host = (char*)originHost;
-	vector<char*> arr;
-
-    char** result = new char* [count];
+	char** result = new char* [count];
 
 	if (errCode == DNS_ERR_NONE) {
 		for (int i = 0; i < count; ++i) {
 			if (type == DNS_IPv4_A) {
-
 				char* ip = numberToAddr(((u32*)addrs)[i]);
-
-				// 拷贝一次IP， 防止Java端的数组的元素返回同样的指针
-				char* target = copyStr(ip);
-				result[i] = target;
-				printf("%s: %s , index: %d, result[i]: %s \n", host,ip, i, result[i]);
+				result[i] = ip;
+				printf("%s: %s , index: %d, result[i]: %s \n", host, ip, i, result[i]);
 			}
 			else if (type == DNS_PTR) {
 				char* dnsPtr = ((char**)addrs)[i];
-				char* target = copyStr(dnsPtr);
-				arr.push_back(target);
-				result[i] = target;
-				printf("%s: %s\n", host, target);
+				result[i] = dnsPtr;
+				printf("%s: %s\n", host, dnsPtr);
 			}
-		} 
+		}
 	}
 
 	// jni callback
 	//callbackFunc(errCode, count, ttl, host, ipMapper);
-	//char** result = arr.data();
-	//char* strs[] = { "192.168.34.23","210.168.90.23" };
+
 	// jna callback
 	if (callback != NULL) {
-		callback(errCode, type, count, ttl, host, result);
+		try {
+			callback(errCode, type, count, ttl, host, result);
+		}
+		catch (...) {
+		}
+
+		free2DArray((void**)result, count);
 	}
 }
 
