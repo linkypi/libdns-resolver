@@ -154,11 +154,11 @@
     <ClCompile Include="MyEvDns.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\build\event_core_static.vcxproj">
-      <Project>{164cda85-fdc8-33a3-8063-e5a645e375f3}</Project>
+    <ProjectReference Include="..\build\event_core_shared.vcxproj">
+      <Project>{bb13cbac-4dbf-3c4f-b204-bc427c61795a}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\build\event_extra_static.vcxproj">
-      <Project>{327eb9c0-37eb-3abf-8f41-bc4d1c565d9b}</Project>
+    <ProjectReference Include="..\build\event_extra_shared.vcxproj">
+      <Project>{09d2b196-1b0e-3a06-8a91-14d6956da952}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

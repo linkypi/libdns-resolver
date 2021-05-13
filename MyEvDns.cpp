@@ -36,7 +36,7 @@ typedef struct
 static Jni_Callback* jni_callback;
 
 static JavaVM* jvm;
-static jclass callbackClass;
+static jclass jniCallbackClass;
 
 jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 	// 把 JavaVM 存下来，在回调函数中通过它来得到 JNIEnv
@@ -47,7 +47,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 	}
 
 	// 把回调函数的 jclass 通过 GlobalRef 的方式存下来，因为 jclass (是 Local Reference)不能跨线程
-	callbackClass = (jclass)env->NewGlobalRef(env->FindClass("com/dns/demo/DnsCallback"));
+	jniCallbackClass = (jclass)env->NewGlobalRef(env->FindClass("com/dns/demo/DnsCallback"));
 	return JNI_VERSION_1_8;
 }
 
@@ -59,7 +59,7 @@ JNIEXPORT void JNICALL Java_com_dns_demo_TestDnsResolve_resolveDns
 
 	// 获得回调接口 函数call 的 methodID.
 	//jclass clazz_listener = env->GetObjectClass(callback);
-	jmethodID callbackMethod = env->GetMethodID(callbackClass, "call", "(Lcom/dns/demo/CallbackResponse;)V");
+	jmethodID callbackMethod = env->GetMethodID(jniCallbackClass, "call", "(Lcom/dns/demo/CallbackResponse;)V");
 
 	// 这里创建 jni_callback_t 的实例，创建 Listener 和 Callback 的全局引用并赋值.
 	jni_callback = (Jni_Callback*)malloc(sizeof(Jni_Callback));
@@ -194,8 +194,9 @@ static void resolve_callback(int errCode, char type, int count, int ttl, void* a
 	}
 
 	// jni callback
-	callbackFunc(errCode, count, ttl, host, result);
-
+	if (jniCallbackClass) {
+		callbackFunc(errCode, count, ttl, host, result);
+	}
 	// jna callback
 	if (callback != NULL) {
 		try {
