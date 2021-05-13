@@ -20,9 +20,9 @@ static jni_callback_t* jni_callback;
 static JavaVM* jvm;
 static jclass callbackClass;
 
-static const char* numberToAddr(u32 address)
+static char* numberToAddr(u32 address)
 {
-	static char buf[32];
+    static char buf[16];
 	u32 a = ntohl(address);
 	evutil_snprintf(buf, sizeof(buf), "%d.%d.%d.%d",
 		(int)(u8)((a >> 24) & 0xff),
@@ -100,33 +100,48 @@ void callbackFunc(int errCode, int count, int ttl, char* originHost, map<int, ve
 	jvm->DetachCurrentThread();
 }
 
+static char* copyStr(char* src) {
+	char* target = new char[strlen(src)];
+	strcpy(target, src);
+	return target;
+}
+
 DnsCallback callback = NULL;
 
 static void resolve_callback(int errCode, char type, int count, int ttl, void* addrs, void* originHost) {
 	char* host = (char*)originHost;
-	vector<const char*> arr;
+	vector<char*> arr;
+
+    char** result = new char* [count];
 
 	if (errCode == DNS_ERR_NONE) {
 		for (int i = 0; i < count; ++i) {
 			if (type == DNS_IPv4_A) {
-			    const char* ip = numberToAddr(((u32*)addrs)[i]);
-				arr.push_back(ip);
-				printf("%s: %s , index: %d, result[i]: %s \n", host,ip, i, arr.at(i));
+
+				char* ip = numberToAddr(((u32*)addrs)[i]);
+
+				// 拷贝一次IP， 防止Java端的数组的元素返回同样的指针
+				char* target = copyStr(ip);
+				result[i] = target;
+				printf("%s: %s , index: %d, result[i]: %s \n", host,ip, i, result[i]);
 			}
 			else if (type == DNS_PTR) {
 				char* dnsPtr = ((char**)addrs)[i];
-				arr.push_back(dnsPtr);
-				printf("%s: %s\n", host, dnsPtr);
+				char* target = copyStr(dnsPtr);
+				arr.push_back(target);
+				result[i] = target;
+				printf("%s: %s\n", host, target);
 			}
 		} 
 	}
 
 	// jni callback
 	//callbackFunc(errCode, count, ttl, host, ipMapper);
-
+	//char** result = arr.data();
+	//char* strs[] = { "192.168.34.23","210.168.90.23" };
 	// jna callback
 	if (callback != NULL) {
-		callback(errCode, type, count, ttl, host, arr.data());
+		callback(errCode, type, count, ttl, host, result);
 	}
 }
 
@@ -139,10 +154,11 @@ void resolve_dns(char* host_name) {
 		WSADATA WSAData;
 		WSAStartup(0x101, &WSAData);
 	}
+#endif
+
 	event_base = event_base_new();
 	evdns_base = evdns_base_new(event_base, EVDNS_BASE_DISABLE_WHEN_INACTIVE);
 
-#endif
 	int res;
 #ifdef _WIN32
 	res = evdns_base_config_windows_nameservers(evdns_base);

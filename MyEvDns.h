@@ -46,7 +46,7 @@
 
 _declspec(dllexport) void resolve_dns(char* host_name);
 
-typedef void (*DnsCallback) (int,int,int,int,char*,const char**);
+typedef void (*DnsCallback) (int,int,int,int,char*,char**);
 
 extern "C" {
 	__declspec(dllexport) void resolve(char* host, DnsCallback func);
