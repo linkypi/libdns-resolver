@@ -147,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\java\dns_jni_demo\src\main\java\com_dns_demo_TestDnsResolve.h" />
     <ClInclude Include="MyEvDns.h" />
   </ItemGroup>
   <ItemGroup>

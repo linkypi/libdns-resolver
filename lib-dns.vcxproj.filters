@@ -18,6 +18,9 @@
     <ClInclude Include="MyEvDns.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\java\dns_jni_demo\src\main\java\com_dns_demo_TestDnsResolve.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MyEvDns.cpp">
