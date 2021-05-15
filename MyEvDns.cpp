@@ -79,6 +79,8 @@ JNIEXPORT void JNICALL Java_com_dns_demo_TestDnsResolve_resolveDns
 
 	free(host);
 	free(jni_callback);
+	host = NULL;
+	jni_callback = NULL;
 }
 
 /**
@@ -168,6 +170,7 @@ void free2DArray(void** arr, int count) {
 		free(arr[i]);
 	}
 	delete[]arr;
+	arr = NULL;
 	printf("free memory success\n");
 }
 
