@@ -66,14 +66,7 @@ JNIEXPORT void JNICALL Java_com_dns_demo_TestDnsResolve_resolveDns
 	memset(jni_callback, 0, sizeof(Jni_Callback));
 	jni_callback->cbInstance = env->NewGlobalRef(callback);
 	jni_callback->cbMethod = callbackMethod;
-	//jni_callback->z_greet_callback = (jclass)env->NewGlobalRef(clazz_greet_callback);
-	//jni_callback->m_greet_callback_init = method_greet_callback_init;
 
-	// 销毁局部引用
-	//env->DeleteLocalRef(clazz_listener);
-	//env->DeleteLocalRef(clazz_greet_callback);
-	//clazz_listener = NULL;
-	//clazz_greet_callback = NULL;
 	char* host = jstringTostring(env, hostName);
 	resolve_dns(host);
 
@@ -116,7 +109,7 @@ void callbackFunc(int errCode, int count, int ttl, char* originHost, char** ips)
 	JNIEnv* env;
 	jvm->AttachCurrentThread(reinterpret_cast<void**>(&env), nullptr);
 
-	// 获得自定义 Callback类 GreetCallback 构造函数的 methodID.
+	// 获得自定义 Callback类构造函数的 methodID.
 	jclass clazz_callback_res = env->FindClass("com/dns/demo/CallbackResponse");
 	// int code, int count , int ttl, String origin, Map<Integer, List<String>> mapper
 	jmethodID method_callback_res_init = env->GetMethodID(clazz_callback_res, "<init>", "(IIILjava/lang/String;Ljava/util/List;)V");
@@ -196,20 +189,19 @@ static void resolve_callback(int errCode, char type, int count, int ttl, void* a
 		}
 	}
 
-	// jni callback
-	if (jniCallbackClass) {
-		callbackFunc(errCode, count, ttl, host, result);
-	}
-	// jna callback
-	if (callback != NULL) {
-		try {
-			callback(errCode, type, count, ttl, host, result);
+	try {
+		// jni callback
+		if (jniCallbackClass) {
+		    callbackFunc(errCode, count, ttl, host, result);
 		}
-		catch (...) {
+		// jna callback
+		if (callback != NULL) {
+		    callback(errCode, type, count, ttl, host, result);
 		}
-
-		free2DArray((void**)result, count);
 	}
+	catch (...) {
+	}
+	free2DArray((void**)result, count);
 }
 
 void resolve_dns(char* host_name) {
